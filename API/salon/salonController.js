@@ -1,4 +1,4 @@
-const { Salon } = require("../../db/models");
+const { Salon, Category } = require("../../db/models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET, JWT_EXPIRATION_MS } = require("../../db/config/keys");
@@ -16,23 +16,26 @@ exports.fetchSalon = async (salonId, next) => {
 exports.addSalonAcc = async (req, res, next) => {
   const { password } = req.body;
   const saltRounds = 10;
+  console.log(req.user.role);
   try {
-    // if (req.user.role === "admin") {
-    if (req.file) {
-      req.body.image = `http://${req.get("host")}/media/${req.file.filename}`;
+    if (req.user.role === "admin") {
+      if (req.file) {
+        req.body.image = `media/${req.file.filename}`;
+      }
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      req.body.password = hashedPassword;
+      const newSalon = await Salon.create({ ...req.body, role: "salon" });
+      const payload = {
+        id: newSalon.id,
+        name: newSalon.username,
+        role: user.role,
+        exp: Date.now() + JWT_EXPIRATION_MS,
+      };
+      const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
+      res.status(201).json({ token: token });
+    } else {
+      res.status(400).json({ message: "Only admins can add new salons" });
     }
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    req.body.password = hashedPassword;
-    const newSalon = await Salon.create({ ...req.body, role: "salon" });
-    const payload = {
-      id: newSalon.id,
-      name: newSalon.username,
-      exp: Date.now() + JWT_EXPIRATION_MS,
-    };
-    const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
-    res.status(201).json({ token: token });
-    // }
-    // res.status(400).json({ message: "Only admins can add new salons" });
   } catch (error) {
     next(error);
   }
@@ -44,6 +47,7 @@ exports.signin = (req, res) => {
   const payload = {
     id: user.id,
     username: user.username,
+    role: user.role,
     exp: Date.now() + parseInt(JWT_EXPIRATION_MS),
   };
   const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
@@ -56,13 +60,14 @@ exports.getTokenInfo = (req, res, next) => {
 };
 
 // Salons list controller
-exports.getSalonsList = async (_, res) => {
+exports.getSalonsList = async (req, res) => {
   try {
-    // if (req.user.role === "admin") {
-    const salons = await Salon.findAll();
-    res.json(salons);
-    // }
-    // res.status(400).json("Only admins can view salons list");
+    if (req.user.role === "admin") {
+      const salons = await Salon.findAll();
+      res.json(salons);
+    } else {
+      res.status(400).json("Only admins can view salons list");
+    }
   } catch (error) {
     res.status(500).json("No salons found");
   }
@@ -72,11 +77,17 @@ exports.getSalonsList = async (_, res) => {
 exports.getSalonById = async (req, res, next) => {
   const { salonId } = req.params;
   try {
-    if (req.user.id === +salonId && req.user.role === "salon") {
+    if (
+      (req.user.id === +salonId && req.user.role === "salon") ||
+      req.user.role === "admin"
+    ) {
       const foundSalon = await Salon.findByPk(salonId);
       res.status(200).json({ foundSalon });
     } else {
-      res.status(400).json("Only this salon manager can view this salon info");
+      res.status(400).json({
+        message:
+          "Only app admins and this salon manager can view this salon info",
+      });
     }
   } catch (error) {
     next(error);
@@ -85,18 +96,20 @@ exports.getSalonById = async (req, res, next) => {
 
 // Updating salon info controller
 exports.updateSalon = async (req, res, next) => {
-  //   const { salonId } = req.params;
+  const { salonId } = req.params;
   try {
-    // if (req.user.id === salonId) {
-    if (req.file) {
-      req.body.image = `http://${req.get("host")}/media/${req.file.filename}`;
+    if (req.user.id === +salonId && req.user.role === "salon") {
+      if (req.file) {
+        req.body.image = `/media/${req.file.filename}`;
+        // req.body.image = `http://${req.get("host")}/media/${req.file.filename}`;
+      }
+      await req.salon.update(req.body);
+      res.status(200).json({ message: "Salon info has been updated" });
+    } else {
+      res.status(400).json({
+        message: "Only this salon manager can update this salon info",
+      });
     }
-    await req.salon.update(req.body);
-    res.status(200).json({ message: "Salon info has been updated" });
-    // }
-    // res
-    //   .status(400)
-    //   .json({ message: "Only this salon manager can update the info" });
   } catch (error) {
     next(error);
   }
@@ -104,12 +117,74 @@ exports.updateSalon = async (req, res, next) => {
 
 // Deleting a salon
 exports.deleteSalon = async (req, res, next) => {
+  const { salonId } = req.params;
   try {
-    //   if (req.user.role !== "viewer") {
-    await req.salon.destroy(req.body);
-    res.status(200).json("Salon has been deleted");
-    //   }
-    //   res.status(400).json({ message: "Viewers can not delete movies" });
+    if (
+      (req.user.id === +salonId && req.user.role === "salon") ||
+      req.user.role === "admin"
+    ) {
+      await req.salon.destroy(req.body);
+      res.status(200).json({ message: "Salon account has been deleted" });
+    } else {
+      res.status(400).json({
+        message:
+          "Only app admins or this salon manager can delete this salon account",
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create new category in a salon
+exports.categoryCreate = async (req, res, next) => {
+  const { salonId } = req.params;
+  try {
+    if (req.user.id === +salonId && req.user.role === "salon") {
+      if (req.file) {
+        req.body.image = `/media/${req.file.filename}`;
+      }
+      const checkCategory = await Category.findOne({
+        where: {
+          name: req.body.name,
+          salonId: salonId,
+        },
+      });
+      if (!checkCategory) {
+        req.body.salonId = req.user.id;
+        const newCategory = await Category.create(req.body);
+        res.status(201).json(newCategory);
+      } else {
+        const err = new Error("This category already exist in your salon");
+        err.status = 401;
+        res.json({ message: err.message });
+      }
+    } else {
+      const err = new Error("Only this salon manager can add new categories");
+      err.status = 401;
+      res.json({ message: err.message });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Salon's categories list controller
+exports.fetchSalonCategories = async (req, res, next) => {
+  const { salonId } = req.params;
+  try {
+    if (req.user.id === +salonId && req.user.role === "salon") {
+      const foundCatergories = await Category.findAll({
+        where: {
+          salonId: salonId,
+        },
+      });
+      res.json({ thisSalonCatergories: foundCatergories });
+    } else {
+      res.status(400).json({
+        message: "Only this salon manager can view this categories list",
+      });
+    }
   } catch (error) {
     next(error);
   }

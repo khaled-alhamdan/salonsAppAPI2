@@ -14,6 +14,8 @@ const {
   updateSalon,
   getSalonById,
   deleteSalon,
+  categoryCreate,
+  fetchSalonCategories,
 } = require("./salonController");
 
 // param middleware
@@ -30,7 +32,12 @@ router.param("salonId", async (req, res, next, salonId) => {
 });
 
 // Sign up route
-router.post("/addSalonAcc", upload.single("image"), addSalonAcc);
+router.post(
+  "/addSalonAcc",
+  passport.authenticate("jwt", { session: false }),
+  upload.single("image"),
+  addSalonAcc
+);
 
 // Sign in route
 router.post(
@@ -73,6 +80,21 @@ router.delete(
   "/:salonId",
   passport.authenticate("jwt", { session: false }),
   deleteSalon
+);
+
+// Create new category in a salon
+router.post(
+  "/:salonId/categories",
+  upload.single("image"),
+  passport.authenticate("jwt", { session: false }),
+  categoryCreate
+);
+
+// Get category in a salon
+router.get(
+  "/:salonId/categories",
+  passport.authenticate("jwt", { session: false }),
+  fetchSalonCategories
 );
 
 module.exports = router;
