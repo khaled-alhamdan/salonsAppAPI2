@@ -43,4 +43,15 @@ Object.keys(db).forEach((modelName) => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+// Salon and Category relation
+db.Salon.hasMany(db.Category, {
+  foreignKey: "salonId",
+  as: "categories",
+  allowNull: false,
+});
+db.Category.belongsTo(db.Salon, {
+  foreignKey: "salonId",
+  as: "salon",
+});
+
 module.exports = db;

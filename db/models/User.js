@@ -1,24 +1,20 @@
 const SequelizeSlugify = require("sequelize-slugify");
 
 module.exports = (sequelize, DataTypes) => {
-  const Salon = sequelize.define("Salon", {
+  const User = sequelize.define("User", {
     username: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: {
         args: true,
-        msg: "This salon name is already exists",
+        msg: "This username already exists",
       },
     },
-    role: {
+    firstName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    slug: {
-      type: DataTypes.STRING,
-      uniqe: true,
-    },
-    owner: {
+    lastName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -27,8 +23,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: {
         args: true,
-        msg: "This email is already exists",
+        msg: "This email already exists",
       },
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     phone: {
       type: DataTypes.INTEGER,
@@ -38,26 +38,29 @@ module.exports = (sequelize, DataTypes) => {
         msg: "This phone number already exists",
       },
     },
-    address: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     gender: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    slug: {
+      type: DataTypes.STRING,
+      uniqe: true,
+    },
+    timeslots: {
+      type: DataTypes.INTEGER,
     },
     image: {
       type: DataTypes.STRING,
     },
   });
 
-  SequelizeSlugify.slugifyModel(Salon, {
+  SequelizeSlugify.slugifyModel(User, {
     source: ["username"],
   });
 
-  return Salon;
+  return User;
 };
