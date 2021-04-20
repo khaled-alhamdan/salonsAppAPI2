@@ -16,6 +16,7 @@ const {
   deleteSalon,
   categoryCreate,
   fetchSalonCategories,
+  addSpecialistInSalon,
 } = require("./salonController");
 
 // param middleware
@@ -95,6 +96,14 @@ router.get(
   "/:salonId/categories",
   passport.authenticate("jwt", { session: false }),
   fetchSalonCategories
+);
+
+// Create new category in a salon
+router.post(
+  "/:salonId/specialists",
+  upload.single("image"),
+  passport.authenticate("jwt", { session: false }),
+  addSpecialistInSalon
 );
 
 module.exports = router;
