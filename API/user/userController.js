@@ -63,10 +63,24 @@ exports.getTokenInfo = (req, res, next) => {
 exports.getUsersList = async (req, res) => {
   try {
     if (req.user.role === "admin") {
-      const users = await User.findAll();
+      const users = await User.findAll({
+        attributes: {
+          exclude: ["createdAt", "updatedAt", "password"],
+        },
+      });
+
       res.json(users);
+
+      // const payload = {
+      //   id: user.id,
+      //   username: user.username,
+      //   role: user.role,
+      //   exp: Date.now() + parseInt(JWT_EXPIRATION_MS),
+      // };
+      // const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
+      // res.json({ token: token });
     } else {
-      res.status(400).json("Only admins can view users list");
+      res.status(400).json({ message: "Only admins can view users list" });
     }
   } catch (error) {
     res.status(500).json("No users found");

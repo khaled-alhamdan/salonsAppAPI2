@@ -54,4 +54,26 @@ db.Category.belongsTo(db.Salon, {
   as: "salon",
 });
 
+// Salon and customer relation
+db.Salon.belongsToMany(db.User, {
+  foreignKey: "salonId",
+  as: "salons",
+  through: "Booking",
+});
+db.User.belongsToMany(db.Salon, {
+  foreignKey: "userId",
+  as: "users",
+  through: "Booking",
+});
+
+// // Salon and specialist relation
+// db.Salon.hasMany(db.User, {
+//   foreignKey: "salonId",
+//   as: "specialists",
+// });
+// db.User.belongsTo(db.Salon, {
+//   foreignKey: "salonId",
+//   as: "salon",
+// });
+
 module.exports = db;

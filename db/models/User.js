@@ -56,6 +56,9 @@ module.exports = (sequelize, DataTypes) => {
     image: {
       type: DataTypes.STRING,
     },
+    salonId: {
+      type: DataTypes.STRING,
+    },
   });
 
   SequelizeSlugify.slugifyModel(User, {
