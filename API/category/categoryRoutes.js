@@ -10,6 +10,8 @@ const {
   updateCategoryInfo,
   getCategoryById,
   deleteCategory,
+  createService,
+  fetchSalonServices,
 } = require("./categoryController");
 
 // param middleware
@@ -46,5 +48,15 @@ router.delete(
   passport.authenticate("jwt", { session: false }),
   deleteCategory
 );
+
+//Create Service
+router.post("/:categoryId/services",
+passport.authenticate("jwt", { session: false }),
+ createService)
+
+ // Service List
+ router.get("/:categoryId",
+ passport.authenticate("jwt", { session: false }),
+ fetchSalonServices)
 
 module.exports = router;

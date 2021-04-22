@@ -54,6 +54,16 @@ db.Category.belongsTo(db.Salon, {
   as: "salon",
 });
 
+//Category and Service (One to many)
+db.Category.hasMany(db.Service, {
+  foreignKey: "categoryId",
+  as:"services"
+});
+db.Service.belongsTo(db.Category, {
+  foreignKey:"categoryId",
+  // as:"category"
+})
+
 // Salon and customer relation
 db.Salon.belongsToMany(db.User, {
   foreignKey: "salonId",

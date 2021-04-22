@@ -1,4 +1,4 @@
-const { Category } = require("../../db/models");
+const { Category , Service } = require("../../db/models");
 
 exports.fetchCategory = async (categoryId, next) => {
   try {
@@ -110,3 +110,78 @@ exports.deleteCategory = async (req, res, next) => {
     next(error);
   }
 };
+//++++++++++++++++ Service +++++++++++++++++++++++++++++++++++//
+
+// Create service
+exports.createService = async (req, res, next) => {
+  const salonId = req.user.id;
+  const { categoryId } = req.params;
+  try {
+    // foundCategory: CHACK IF CATEGORY EXIST OR NOT "findOne"
+    const foundCategory = await Category.findOne({
+      where: {
+        id: +categoryId,
+        salonId: +salonId,
+      }
+    });
+    // if Category EXIST && if salonID === salonId in the foundCategory
+    if (foundCategory && req.user.id === salonId) {
+      const checkService = await Service.findOne({
+        where: {
+          name: req.body.name,
+        categoryId: categoryId
+       },
+      }); if (!checkService) {
+        req.body.categoryId = categoryId;
+        const newService = await Service.create(req.body);
+        res.status(201).json(newService);
+      } else {
+        const err = new Error("This service already exist in your salon");
+        err.status = 401;
+        res.json({ message: err.message });
+      }
+      
+   } else {
+      const err = new Error("This categorey does not exist in this salon");
+      err.status = 400;
+      res.json({ message: err.message });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Categories List
+exports.fetchSalonServices = async (req, res, next) => {
+  const salonId = req.user.id;
+  const { categoryId } = req.params;
+  try {
+    // foundCategory: CHACK IF CATEGORY EXIST OR NOT "findOne"
+    const foundCategory = await Category.findOne({
+      where: {
+        id: +categoryId,
+        salonId: +salonId,
+      }
+    });
+    // if Category EXIST && if salonID === salonId in the foundCategory
+    if (foundCategory && req.user.id === salonId) {
+        const foundServices = await Service.findAll({
+          where: {
+            categoryId: categoryId,
+          },
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        });
+        if (foundServices) {
+          res.json({ thisSalonServices: foundServices });
+        } 
+        // else {
+
+        // }
+    }
+      
+  } catch (error) {
+    next(error);
+  }
+    }
