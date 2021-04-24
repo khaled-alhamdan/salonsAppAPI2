@@ -68,17 +68,7 @@ exports.getUsersList = async (req, res) => {
           exclude: ["createdAt", "updatedAt", "password"],
         },
       });
-
-      res.json(users);
-
-      // const payload = {
-      //   id: user.id,
-      //   username: user.username,
-      //   role: user.role,
-      //   exp: Date.now() + parseInt(JWT_EXPIRATION_MS),
-      // };
-      // const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
-      // res.json({ token: token });
+      res.status(200).json(users);
     } else {
       res.status(400).json({ message: "Only admins can view users list" });
     }
@@ -141,15 +131,3 @@ exports.deleteUser = async (req, res, next) => {
     next(error);
   }
 };
-
-//Get user/specialist List
-// exports.getUserList = async (req, res, next) => {
-//   try {
-//     const user = await User.findAll({
-//       attributes: { exclude: ["password","createdAt", "updatedAt"] },
-//     });
-//     res.status(200).json(user);
-//   } catch (error) {
-//     next(error);
-//   }
-// };

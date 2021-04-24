@@ -10,6 +10,8 @@ const {
   updateCategoryInfo,
   getCategoryById,
   deleteCategory,
+  fetchSalonCategories,
+  categoryCreate,
 } = require("./categoryController");
 
 // param middleware
@@ -25,16 +27,16 @@ router.param("categoryId", async (req, res, next, categoryId) => {
   }
 });
 
-// Get category by ID route
+// Get category by Id route
 router.get(
-  "/:salonId/:categoryId",
+  "/:categoryId",
   passport.authenticate("jwt", { session: false }),
   getCategoryById
 );
 
 // Update a category info
 router.put(
-  "/:salonId/:categoryId",
+  "/:categoryId",
   passport.authenticate("jwt", { session: false }),
   upload.single("image"),
   updateCategoryInfo
@@ -42,9 +44,24 @@ router.put(
 
 // Delete a category
 router.delete(
-  "/:salonId/:categoryId",
+  "/:categoryId",
   passport.authenticate("jwt", { session: false }),
   deleteCategory
+);
+
+// Get category in a salon
+router.get(
+  "/",
+  // passport.authenticate("jwt", { session: false }),
+  fetchSalonCategories
+);
+
+// Create new category in a salon
+router.post(
+  "/",
+  upload.single("image"),
+  passport.authenticate("jwt", { session: false }),
+  categoryCreate
 );
 
 module.exports = router;

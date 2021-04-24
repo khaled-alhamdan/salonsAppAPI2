@@ -1,4 +1,4 @@
-const { Category } = require("../../db/models");
+const { Category, Service } = require("../../db/models");
 
 exports.fetchCategory = async (categoryId, next) => {
   try {
@@ -9,10 +9,39 @@ exports.fetchCategory = async (categoryId, next) => {
   }
 };
 
+// Salon's categories list controller
+exports.fetchSalonCategories = async (req, res, next) => {
+  // const salonId = req.user.id;
+  try {
+    const foundCatergories = await Category.findAll({
+      // where: {
+      //   salonId: salonId,
+      // },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: Service,
+          as: "services",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+      ],
+    });
+    if (foundCatergories) {
+      res.status(201).json(foundCatergories);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get category by its id
 exports.getCategoryById = async (req, res, next) => {
   const { categoryId } = req.params;
-  const { salonId } = req.params;
+  const salonId = req.user.id;
   try {
     // if (
     //   (req.user.id === +salonId && req.user.role === "salon") ||
@@ -24,8 +53,18 @@ exports.getCategoryById = async (req, res, next) => {
         salonId: +salonId,
       },
       attributes: {
-        exclude: ["createdAt", "updatedAt", "password"],
+        exclude: ["createdAt", "updatedAt"],
       },
+      include: [
+        {
+          model: Service,
+          // where: { salonId: +salonId },
+          as: "services",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+      ],
     });
     if (foundCategory) {
       res.status(200).json({ foundCategory: foundCategory });
@@ -47,12 +86,13 @@ exports.getCategoryById = async (req, res, next) => {
 
 // Updating category info controller
 exports.updateCategoryInfo = async (req, res, next) => {
-  const { salonId } = req.params;
+  const salonId = req.user.id;
   const { categoryId } = req.params;
   try {
     if (req.user.id === +salonId && req.user.role === "salon") {
       if (req.file) {
-        req.body.image = `/media/${req.file.filename}`;
+        // req.body.image = `/media/${req.file.filename}`;
+        req.body.image = `http://${req.get("host")}/media/${req.file.filename}`;
       }
       const checkCategory = await Category.findOne({
         where: {
@@ -82,7 +122,7 @@ exports.updateCategoryInfo = async (req, res, next) => {
 
 // Deleting a category
 exports.deleteCategory = async (req, res, next) => {
-  const { salonId } = req.params;
+  const salonId = req.user.id;
   const { categoryId } = req.params;
   try {
     if (req.user.id === +salonId && req.user.role === "salon") {
@@ -105,6 +145,40 @@ exports.deleteCategory = async (req, res, next) => {
         message:
           "Only this salon manager can delete categories from this salon",
       });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create new category in a salon
+exports.categoryCreate = async (req, res, next) => {
+  const salonId = req.user.id;
+  try {
+    if (req.user.id === +salonId && req.user.role === "salon") {
+      if (req.file) {
+        // req.body.image = `/media/${req.file.filename}`;
+        req.body.image = `http://${req.get("host")}/media/${req.file.filename}`;
+      }
+      const checkCategory = await Category.findOne({
+        where: {
+          name: req.body.name,
+          salonId: salonId,
+        },
+      });
+      if (!checkCategory) {
+        req.body.salonId = req.user.id;
+        const newCategory = await Category.create(req.body);
+        res.status(201).json(newCategory);
+      } else {
+        const err = new Error("This category already exist in your salon");
+        err.status = 401;
+        res.json({ message: err.message });
+      }
+    } else {
+      const err = new Error("Only this salon manager can add new categories");
+      err.status = 401;
+      res.json({ message: err.message });
     }
   } catch (error) {
     next(error);

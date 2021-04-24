@@ -10,6 +10,8 @@ const { localStrategy, jwtStrategy } = require("./middlewares/passport");
 const salonRoutes = require("./API/salon/salonRoutes");
 const userRoutes = require("./API/user/userRoutes");
 const categoryRoutes = require("./API/category/categoryRoutes");
+const specialistRoutes = require("./API/specialist/specialistRoutes");
+const serviceRoutes = require("./API/service/serviceRoutes");
 
 // init app
 const app = express();
@@ -26,6 +28,8 @@ app.use("/media", express.static(path.join(__dirname, "./media")));
 app.use("/salons", salonRoutes);
 app.use("/users", userRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/specialists", specialistRoutes);
+app.use("/services", serviceRoutes);
 
 // Errors handler middlewre
 app.use((err, req, res, next) => {
@@ -37,8 +41,8 @@ app.use((err, req, res, next) => {
 // start server
 const runApp = async () => {
   try {
-    // await db.sequelize.sync({ alter: true });
-    await db.sequelize.sync();
+    await db.sequelize.sync({ alter: true });
+    // await db.sequelize.sync();
 
     app.listen(process.env.PORT, () => {
       console.log("Connection to the database was successful!");
