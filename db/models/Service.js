@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         min: 0,
       },
     },
+    salonId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   });
 
   SequelizeSlugify.slugifyModel(Service, {

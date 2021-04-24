@@ -14,8 +14,6 @@ const {
   updateSalon,
   getSalonById,
   deleteSalon,
-  categoryCreate,
-  fetchSalonCategories,
 } = require("./salonController");
 
 // param middleware
@@ -56,7 +54,7 @@ router.get(
 // Get all salons route
 router.get(
   "/",
-  passport.authenticate("jwt", { session: false }),
+  // passport.authenticate("jwt", { session: false }),
   getSalonsList
 );
 
@@ -82,19 +80,20 @@ router.delete(
   deleteSalon
 );
 
-// Create new category in a salon
-router.post(
-  "/:salonId/categories",
-  upload.single("image"),
-  passport.authenticate("jwt", { session: false }),
-  categoryCreate
-);
-
-// Get category in a salon
-router.get(
-  "/:salonId/categories",
-  passport.authenticate("jwt", { session: false }),
-  fetchSalonCategories
-);
-
 module.exports = router;
+
+// // Create new category in a salon
+// router.post(
+//   "/:salonId/categories",
+//   upload.single("image"),
+//   passport.authenticate("jwt", { session: false }),
+//   categoryCreate
+// );
+
+// // Create new specialist in a salon
+// router.post(
+//   "/:salonId/specialists",
+//   upload.single("image"),
+//   passport.authenticate("jwt", { session: false }),
+//   addSpecialistInSalon
+// );

@@ -54,4 +54,56 @@ db.Category.belongsTo(db.Salon, {
   as: "salon",
 });
 
+// Salon and customer relation
+db.Salon.belongsToMany(db.User, {
+  foreignKey: "salonId",
+  as: "salons",
+  through: "Booking",
+});
+db.User.belongsToMany(db.Salon, {
+  foreignKey: "userId",
+  as: "users",
+  through: "Booking",
+});
+
+//Category and Service (One to many)
+db.Category.hasMany(db.Service, {
+  foreignKey: "categoryId",
+  as: "services",
+});
+db.Service.belongsTo(db.Category, {
+  foreignKey: "categoryId",
+});
+
+// Service and specialist relation
+db.Service.belongsToMany(db.User, {
+  foreignKey: "serviceId",
+  as: "services",
+  through: "SpecialistServices",
+});
+db.User.belongsToMany(db.Service, {
+  foreignKey: { name: "specialistId", allowNull: false },
+  as: "specialists",
+  through: "SpecialistServices",
+});
+
+//Service and specialist services
+db.Service.hasMany(db.SpecialistServices, {
+  foreignKey: "serviceId",
+  as: "specialistServices",
+});
+db.SpecialistServices.belongsTo(db.Service, {
+  foreignKey: "serviceId",
+});
+
+// // Salon and specialist relation
+// db.Salon.hasMany(db.User, {
+//   foreignKey: "salonId",
+//   as: "specialists",
+// });
+// db.User.belongsTo(db.Salon, {
+//   foreignKey: "salonId",
+//   as: "salon",
+// });
+
 module.exports = db;

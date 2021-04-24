@@ -63,10 +63,14 @@ exports.getTokenInfo = (req, res, next) => {
 exports.getUsersList = async (req, res) => {
   try {
     if (req.user.role === "admin") {
-      const users = await User.findAll();
-      res.json(users);
+      const users = await User.findAll({
+        attributes: {
+          exclude: ["createdAt", "updatedAt", "password"],
+        },
+      });
+      res.status(200).json(users);
     } else {
-      res.status(400).json("Only admins can view users list");
+      res.status(400).json({ message: "Only admins can view users list" });
     }
   } catch (error) {
     res.status(500).json("No users found");
@@ -127,15 +131,3 @@ exports.deleteUser = async (req, res, next) => {
     next(error);
   }
 };
-
-//Get user/specialist List
-// exports.getUserList = async (req, res, next) => {
-//   try {
-//     const user = await User.findAll({
-//       attributes: { exclude: ["password","createdAt", "updatedAt"] },
-//     });
-//     res.status(200).json(user);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
