@@ -28,6 +28,7 @@ exports.signup = async (req, res, next) => {
       id: newUser.id,
       username: newUser.username,
       role: newUser.role,
+      gender: newUser.gender,
       exp: Date.now() + JWT_EXPIRATION_MS,
     };
     const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
@@ -45,10 +46,17 @@ exports.signin = (req, res) => {
       id: user.id,
       username: user.username,
       role: user.role,
+      gender: user.gender,
       exp: Date.now() + parseInt(JWT_EXPIRATION_MS),
     };
-    const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
-    res.json({ token: token });
+    if (req.user.role === "customer" || "specialist") {
+      const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
+      res.json({ token: token });
+    } else {
+      res
+        .status(400)
+        .json({ message: "Only specialists and customers can sign in" });
+    }
   } catch (error) {
     next(error);
   }
@@ -93,12 +101,19 @@ exports.getUserById = async (req, res, next) => {
 };
 
 // update user info
-exports.updateInfo = async (req, res) => {
+exports.updateInfo = async (req, res, next) => {
   const { userId } = req.params;
+  const { password } = req.body;
+  const saltRounds = 10;
   try {
-    if (req.user.id === +userId && req.user.role === "customer") {
+    if (req.user.id === +userId) {
       if (req.file) {
-        req.body.image = `/media/${req.file.filename}`;
+        // req.body.image = `/media/${req.file.filename}`;
+        req.body.image = `http://${req.get("host")}/media/${req.file.filename}`;
+      }
+      if (req.body.password) {
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        req.body.password = hashedPassword;
       }
       await req.user.update(req.body);
       res.status(200).json({ message: "user info has been updated" });
@@ -108,7 +123,7 @@ exports.updateInfo = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 

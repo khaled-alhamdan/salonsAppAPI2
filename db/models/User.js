@@ -58,6 +58,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     salonId: {
       type: DataTypes.STRING,
+      // type: DataTypes.INTEGER,
     },
   });
 
