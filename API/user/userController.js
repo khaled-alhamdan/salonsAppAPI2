@@ -29,6 +29,10 @@ exports.signup = async (req, res, next) => {
       username: newUser.username,
       role: newUser.role,
       gender: newUser.gender,
+      email: newUser.email,
+      phone: newUser.phone,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
       exp: Date.now() + JWT_EXPIRATION_MS,
     };
     const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
@@ -47,6 +51,10 @@ exports.signin = (req, res) => {
       username: user.username,
       role: user.role,
       gender: user.gender,
+      email: user.email,
+      phone: user.phone,
+      firstName: user.firstName,
+      lastName: user.lastName,
       exp: Date.now() + parseInt(JWT_EXPIRATION_MS),
     };
     if (req.user.role === "customer" || "specialist") {
