@@ -166,7 +166,7 @@ exports.assignServiceToSpecialist = async (req, res, next) => {
           where: {
             serviceId: serviceId,
             specialistId: specialistId,
-            salonId: `${salonId}`,
+            salonId: salonId,
           },
         });
         if (!checkSpecialistService) {
@@ -210,7 +210,7 @@ exports.removeServiceFromSpecialist = async (req, res, next) => {
         where: {
           serviceId: serviceId,
           specialistId: specialistId,
-          salonId: `${salonId}`,
+          salonId: salonId,
         },
       });
       if (checkSpecialistService) {

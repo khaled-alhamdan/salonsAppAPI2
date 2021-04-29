@@ -13,15 +13,6 @@ exports.fetchSpecialists = async (req, res, next) => {
       attributes: {
         exclude: ["createdAt", "updatedAt", "password"],
       },
-      // include: [
-      //   {
-      //     model: SpecialistServices,
-      //     as: "specialistServices",
-      //     attributes: {
-      //       exclude: ["createdAt", "updatedAt"],
-      //     },
-      //   },
-      // ],
     });
     if (foundSpecialists) {
       res.status(200).json(foundSpecialists);
@@ -93,7 +84,7 @@ exports.deleteSpecialistFromSalon = async (req, res, next) => {
         where: {
           id: specialistId,
           role: "specialist",
-          salonId: `${salonId}`,
+          salonId: salonId,
         },
       });
       if (checkSpecialist) {
