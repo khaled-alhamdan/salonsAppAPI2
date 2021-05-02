@@ -14,14 +14,14 @@ const { Bookings, User, Salon } = require("../../db/models");
 // };
 
 exports.getBooking = async (req, res, next) => {
-  const { bookingId } = req.params;
+  const { salonId } = req.params;
   try {
     const booking = await Bookings.findAll({
       where: {
-        salonId: bookingId,
+        salonId: salonId,
       },
     });
-    res.json(booking);
+    res.status(200).json({ thisSalonBookings: booking });
   } catch (error) {
     next(error);
   }
@@ -30,6 +30,8 @@ exports.getBooking = async (req, res, next) => {
 // Making new booking
 exports.newBooking = async (req, res, next) => {
   try {
+    console.log(req.user.role);
+    // if (req.user.role === "customer") {
     // Check customer
     const customer = await User.findOne({
       where: {
@@ -45,46 +47,54 @@ exports.newBooking = async (req, res, next) => {
       },
     });
 
-    const checkBooking = await Bookings.findOne({
-      where: {
-        time: req.body.time,
-        salonId: req.body.salonId,
-        specialistId: req.body.specialistId,
-        date: req.body.date,
-        customerId: req.user.id,
-        service: req.body.service,
-      },
-    });
-
-    if (customer && salon && !checkBooking) {
-      // Check specialist
-      const checkSpecialist = await User.findOne({
+    // res.json(checkBooking);
+    if (customer && salon) {
+      const checkBooking = await Bookings.findOne({
         where: {
-          id: req.body.specialistId,
+          time: req.body.time,
           salonId: req.body.salonId,
-          role: "specialist",
+          specialistId: req.body.specialistId,
+          date: req.body.date,
+          customerId: req.user.id,
+          service: req.body.service,
+          status: "pending",
         },
       });
 
-      if (checkSpecialist) {
-        const newBooking = await Bookings.create({
-          ...req.body,
-          customerId: req.user.id,
+      if (!checkBooking) {
+        // Check specialist
+        const checkSpecialist = await User.findOne({
+          where: {
+            id: req.body.specialistId,
+            salonId: req.body.salonId,
+            role: "specialist",
+          },
         });
-        res.status(200).json({ booking: newBooking });
+        if (checkSpecialist) {
+          const newBooking = await Bookings.create({
+            ...req.body,
+            customerId: req.user.id,
+          });
+          res.status(200).json(newBooking);
+        } else {
+          res
+            .status(400)
+            .json({ Error: "This specilist does not work at this salon" });
+        }
       } else {
-        res
-          .status(400)
-          .json({ Error: "This specilist does not work at this salon" });
+        res.status(400).json({ Error: "This booking already exists" });
       }
     } else {
       res.status(403).json({
-        Error:
-          "This salon does not exist, or the booking has already been placed",
+        Error: "This salon does not exist",
       });
     }
+    // } else {
+    //   res.status(401).json({ Error: "Only customers can make appointments" });
+    // }
   } catch (error) {
     next(error);
+    // res.json(error);
   }
 };
 

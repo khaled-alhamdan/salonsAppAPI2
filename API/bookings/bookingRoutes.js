@@ -34,6 +34,6 @@ router.put(
 );
 
 // Get bookings
-router.get("/:bookingId", getBooking);
+router.get("/:salonId", getBooking);
 
 module.exports = router;
