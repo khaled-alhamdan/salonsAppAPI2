@@ -141,8 +141,8 @@ exports.updateSalon = async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         req.body.password = hashedPassword;
       }
-      await req.salon.update(req.body);
-      res.status(200).json({ message: "Salon info has been updated" });
+      const updatedInfo = await req.salon.update(req.body);
+      res.status(200).json(updatedInfo);
     } else {
       res.status(400).json({
         message: "Only this salon manager can update this salon info",

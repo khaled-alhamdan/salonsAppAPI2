@@ -45,18 +45,7 @@ exports.addSpecialistInSalon = async (req, res, next) => {
           role: "specialist",
           salonId: req.user.id,
         });
-        const payload = {
-          id: newSpecialist.id,
-          username: newSpecialist.username,
-          gender: newSpecialist.gender,
-          role: newSpecialist.role,
-          exp: Date.now() + parseInt(JWT_EXPIRATION_MS),
-        };
-        const token = jwt.sign(JSON.stringify(payload), JWT_SECRET);
-        res.status(201).json({
-          message: "Specialist has been added to your salon",
-          token: token,
-        });
+        res.status(201).json(newSpecialist);
       } else {
         const err = new Error(
           "This specialist is already added in your salon, or works at a different salon"
